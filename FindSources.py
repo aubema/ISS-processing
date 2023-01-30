@@ -124,14 +124,14 @@ positions = np.transpose((sources["xcentroid"], sources["ycentroid"]))
 print("Detected points : ", np.shape(positions)[0])
 Flux = np.zeros(np.shape(positions)[0])
 Back = np.zeros(np.shape(positions)[0])
-psf = np.zeros((9, 9))
+psf = np.zeros((7, 7))
 for nd in range(np.shape(positions)[0]):
     xsa = round(positions[nd, 0])
     ysa = round(positions[nd, 1])
-    psf = psf + imag[ysa - 4 : ysa + 4 + 1, xsa - 4 : xsa + 4 + 1,] / np.sum(
+    psf = psf + imag[ysa - 3 : ysa + 3 + 1, xsa - 3 : xsa + 3 + 1,] / np.sum(
         imag[
-            ysa - 4 : ysa + 4 + 1,
-            xsa - 4 : xsa + 4 + 1,
+            ysa - 3 : ysa + 3 + 1,
+            xsa - 3 : xsa + 3 + 1,
         ]
     )
     Flux[nd] = np.sum(
@@ -141,6 +141,7 @@ for nd in range(np.shape(positions)[0]):
         ]
     )
 psf = psf / nd
+psf = psf - np.nanmin(psf)
 sources = sources[Flux > minflux]
 positions = positions[Flux > minflux]
 norm = ImageNormalize(stretch=SqrtStretch())
