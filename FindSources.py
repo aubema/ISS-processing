@@ -145,7 +145,7 @@ sources = sources[Flux > minflux]
 positions = positions[Flux > minflux]
 norm = ImageNormalize(stretch=SqrtStretch())
 plt.figure()
-plt.imshow(avgsource, cmap="magma", origin="lower", norm=norm, interpolation="nearest")
+plt.imshow(psf, cmap="magma", origin="lower", norm=norm, interpolation="nearest")
 plt.colorbar()
 plt.figure()
 apertures = CircularAperture(positions, r=IntegHalfSize + 0.5)
