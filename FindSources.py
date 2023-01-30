@@ -83,9 +83,7 @@ def save_geotiff(filename, data):
     nband = 1
     nrow, ncol = data.shape
     driver = gdal.GetDriverByName("GTiff")
-    dst_dataset = driver.Create(
-        filename + ".tiff", ncol, nrow, nband, gdal.GDT_Float32
-    )
+    dst_dataset = driver.Create(filename + ".tiff", ncol, nrow, nband, gdal.GDT_Float32)
     # sets same geotransform as input
     dst_dataset.SetGeoTransform(src.GetGeoTransform())
     # sets same projection as input
@@ -117,7 +115,7 @@ nx = np.shape(imag)[1]
 imag[np.isnan(imag)] = 0
 # Search for sources
 mean, median, std = sigma_clipped_stats(imag, sigma=3.0)
-daofind = DAOStarFinder(fwhm=1.5, threshold=5 * std)
+daofind = DAOStarFinder(fwhm=1.5, threshold=5 * std, exclude_border=True)
 sources = daofind(imag)
 
 # print(sources)
@@ -126,23 +124,32 @@ positions = np.transpose((sources["xcentroid"], sources["ycentroid"]))
 print("Detected points : ", np.shape(positions)[0])
 Flux = np.zeros(np.shape(positions)[0])
 Back = np.zeros(np.shape(positions)[0])
+psf = np.zeros((9, 9))
 for nd in range(np.shape(positions)[0]):
     xsa = round(positions[nd, 0])
     ysa = round(positions[nd, 1])
+    psf = psf + imag[ysa - 4 : ysa + 4 + 1, xsa - 4 : xsa + 4 + 1,] / np.sum(
+        imag[
+            ysa - 4 : ysa + 4 + 1,
+            xsa - 4 : xsa + 4 + 1,
+        ]
+    )
     Flux[nd] = np.sum(
         imag[
             ysa - IntegHalfSize : ysa + IntegHalfSize + 1,
             xsa - IntegHalfSize : xsa + IntegHalfSize + 1,
         ]
     )
+psf = psf / nd
 sources = sources[Flux > minflux]
 positions = positions[Flux > minflux]
 norm = ImageNormalize(stretch=SqrtStretch())
 plt.figure()
+plt.imshow(avgsource, cmap="magma", origin="lower", norm=norm, interpolation="nearest")
+plt.colorbar()
+plt.figure()
 apertures = CircularAperture(positions, r=IntegHalfSize + 0.5)
-plt.imshow(
-    imag, cmap="magma", origin="lower", norm=norm, interpolation="nearest"
-)
+plt.imshow(imag, cmap="magma", origin="lower", norm=norm, interpolation="nearest")
 plt.colorbar()
 apertures.plot(color="white", lw=1.0, alpha=0.3)
 Flux = Flux[Flux > minflux]
@@ -165,5 +172,5 @@ for no in range(np.shape(Flux)[0]):
     o.write(outputline)
     o.close()
     imagout[round(positions[no, 1]), round(positions[no, 0])] = Flux[no]
-# plt.show()
+plt.show()
 save_geotiff("Output", imagout)
