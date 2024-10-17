@@ -66,7 +66,7 @@ sinx = 2 * np.pi * (np.cos(mids[:-1]) - np.cos(mids[1:]))
 
 # Calculating integral for each lop-spct combinaisons
 # Atmospheric correction pre-calculated by Alejandro
-# Intensity: (nw/sr/cm^2/angstrom) We suppose const value on photopic bandwidth
+# Intensity: (nw/sr/cm^2/angstrom) We suppose const value on photopic bandwidth of 100nm (1000 Agnstrom)
 # Formula: I = DNB * S / integral( R(lambd) * T(lambd) *
 # (1/pi* p(lambd)* F(lambd) + G(lambd))) dlambd)
 integral = S / np.trapz(
